@@ -4,6 +4,7 @@ from pydantic import BaseModel # type: ignore
 from groq import Groq
 from fastapi import FastAPI, HTTPException # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore
+from prompt import system_prompt
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
@@ -28,20 +29,6 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[ChatMessage]
 
-PROFILE = """
-You are an AI assistant that answers questions ONLY about Josean Ralat.
-
-Key facts:
-- Computer Engineering student at UPRM.
-- Study abroad experience at UCM Madrid.
-- Skills: Flutter, Dart, Firebase, Clean Architecture, BLoC, React, Python, C++, IoT, embedded systems.
-- Projects: Workout Logger (Flutter), Expense Tracker (Python), portfolio website, RunBud, MiUni concepts.
-- Interests: software engineering, AI, fitness, running, soccer.
-
-Rules:
-- Answer in a concise, professional tone.
-- If the question is not about Josean, say you do not have information about that.
-"""
 
 @app.post("/")
 async def chat(req: ChatRequest):
@@ -49,7 +36,7 @@ async def chat(req: ChatRequest):
         raise HTTPException(status_code=400, detail="messages array is required")
     
     api_messages = [
-        {"role": "system", "content": PROFILE},
+        {"role": "system", "content": system_prompt},
         *[{"role": m.role, "content": m.content} for m in req.messages],
     ]
     
